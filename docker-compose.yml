@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  selfstream:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: selfstream-addon
+    ports:
+      - "7020:7020"
+    environment:
+      - NODE_ENV=production
+      - PORT=7020
+      - TMDB_API_KEY=${TMDB_API_KEY:-YOUR_TMDB_API_KEY_HERE}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:7020/manifest.json",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - selfstream
+    # Optional: Add volume for persistent cache if needed
+    # volumes:
+    #   - selfstream-cache:/app/.cache
+
+networks:
+  selfstream:
+    driver: bridge
+
+# Optional: Add volume definition if uncommented in service above
+# volumes:
+#   selfstream-cache:

@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  selfstream:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: selfstream-addon-prod
+    ports:
+      - "7020:7020"
+    environment:
+      - NODE_ENV=production
+      - PORT=7020
+      - TMDB_API_KEY=${TMDB_API_KEY}
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:7020/manifest.json",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - selfstream
+    # Production-specific settings
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  selfstream:
+    driver: bridge
